@@ -1,0 +1,33 @@
+---
+layout: post
+title:  "KDE ve Touchpad Kontrolü"
+date:   2016-11-25 09:12:30 +0300
+categories: kde linux
+---
+
+Bazı dizüstü bilgisayar modellerinde touchpad kontrolü için yardımcı bir fonksiyon tuşu sunulmuyor. Bu gibi durumlarda kod yazarken imlecin abuk-sabuk yerlere kayması çok sinir bozucu oluyor. Bunun için KDE içinde bir kısayol tuşu hazırlamak çok işime yarar diye düşündüm. İlk olarak sistem bazında erişilebilir olan ve her çağrıldığında touchpad'i açacak ya da kapatacak bir betiğe ihtiyacım vardı. '/usr/local/bin' altında yaratmak uygun olur diye düşündüm:
+
+{% highlight bash %}
+$touch /usr/local/bin/ctpad
+$chmod +x /usr/local/bin/ctpad
+{% endhighlight %}
+
+
+Daha sonra betiğin içerine biraz deneme yanılma yardımıyla şu kodları yazdım:
+
+{% highlight bash %}
+#!/bin/bash
+
+id=$(xinput | grep -i synaptics | cut -d "=" -f 2 | cut -d "[" -f 1)
+
+if [[ $(xinput list-props $id | grep "Device Enabled" | cut -d ":" -f 2 | tr -d '[:space:]') == "1" ]]
+then
+	xinput disable $id
+	notify-send -u low -i mouse "Trackpad disabled"
+else
+	xinput enable $id
+	notify-send -u low -i mouse "Trackpad enabled"
+fi
+{% endhighlight %}
+
+Komut satırından bu betiğin çalıştığını doğruladıktan sonra sıra bunu bir kısayol tuşuna bağlamaya geldi. Bunun için KDE sistem menüsünden "System Settings -> Shortcuts -> Custom Shortcuts -> Edit -> New -> Global Shortcut -> Command/URL" menüsüne geçip yeni bir aksiyon eklemek yeterli oldu. Aksiyon içinden "Trigger" menüsünden istediğim kısayolu seçip, "Action" menüsü altında daha önce yarattığım betiği (/usr/local/bin/ctpad) seçmem yeterli oldu.
